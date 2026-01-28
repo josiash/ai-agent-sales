@@ -1,30 +1,44 @@
 import { searchProducts } from "@/tools/searchProducts"
 import { calculateOffer } from "@/tools/calculateOffer"
 
-export async function execute(intent: any) {
+export async function execute(intents: any[]) {
   try {
-    if (intent.type === "PRICE_OFFER") {
-      const products = searchProducts(intent.productName)
-      if (!products.length) return "Nie znalazłem produktu o nazwie: " + intent.productName
-
-      const offer = calculateOffer({
-        productId: products[0].id,
-        quantity: intent.quantity,
-        clientType: intent.clientType
-      })
-
-      return `
-Oferta dla Ciebie:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Produkt: ${products[0].name}
-Ilość: ${intent.quantity} m²
-Typ klienta: ${intent.clientType}
-Cena za jednostkę: ${products[0].pricePerM2} zł
-Cena końcowa: ${offer.total} zł
-`
+    if (!Array.isArray(intents)) {
+      intents = [intents];
     }
-    return "Nie mogę przetworzyć tego zapytania"
+
+    let totalPrice = 0;
+    let offerDetails = "Oferta dla Ciebie:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+
+    for (const intent of intents) {
+      if (intent.type === "PRICE_OFFER") {
+        const products = searchProducts(intent.productName);
+        if (!products.length) {
+          offerDetails += `❌ Nie znalazłem produktu: ${intent.productName}\n`;
+          continue;
+        }
+
+        const offer = calculateOffer({
+          productId: products[0].id,
+          quantity: intent.quantity,
+          clientType: intent.clientType
+        });
+
+        totalPrice += offer.total;
+        offerDetails += `\n✓ ${products[0].name}
+  Ilość: ${intent.quantity} ${intent.productName.includes("m³") ? "m³" : intent.productName.includes("sztuk") ? "szt" : "m²"}
+  Cena za jednostkę: ${products[0].pricePerM2} zł
+  Rabat B2B: ${offer.discountApplied * 100}%
+  Cena netto: ${offer.total} zł
+`;
+      }
+    }
+
+    offerDetails += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RAZEM: ${totalPrice} zł`;
+
+    return offerDetails;
   } catch (error) {
-    return `Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`
+    return `Błąd: ${error instanceof Error ? error.message : "Nieznany błąd"}`;
   }
 }
