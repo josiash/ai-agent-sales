@@ -19,7 +19,7 @@ Oferta dla Ciebie:
 Produkt: ${products[0].name}
 Ilość: ${intent.quantity} m²
 Typ klienta: ${intent.clientType}
-Cena za jednostkę: ${products[0].price} zł
+Cena za jednostkę: ${products[0].pricePerM2} zł
 Cena końcowa: ${offer.total} zł
 `
     }

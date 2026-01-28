@@ -12,34 +12,37 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<AgentResponse | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!message.trim()) return;
 
-    setLoading(true);
-    setResponse(null);
+  setLoading(true);
+  setResponse(null);
+  console.log("Frontend: Wysyłam zapytanie:", message);
 
-    try {
-      const res = await fetch('/api/agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message }),
-      });
+  try {
+    const res = await fetch('/api/agent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
 
-      const data = await res.json();
-      setResponse(data);
-    } catch (error) {
-      setResponse({
-        result: '',
-        error: 'Błąd połączenia z agentem',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    console.log("Frontend: Status:", res.status);
+    const data = await res.json();
+    console.log("Frontend: Odpowiedź:", data);
+    setResponse(data);
+  } catch (error) {
+    console.error("Frontend: Błąd:", error);
+    setResponse({
+      result: '',
+      error: 'Błąd połączenia z agentem',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
