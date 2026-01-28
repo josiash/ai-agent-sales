@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 export async function plan(message: string) {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -9,11 +9,8 @@ export async function plan(message: string) {
     throw new Error("Brak GOOGLE_API_KEY. Skonfiguruj .env.local");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  // gemini-1.5-flash jest darmowy
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-2.5-flash",
-    apiVersion: "v1" // zmiana z v1beta na v1
+  const genAI = new GoogleGenAI({
+    apiKey: apiKey,
   });
 
   const prompt = `
@@ -36,8 +33,12 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez dodatkowego tekstu):
 
   try {
     console.log("planner - sending prompt to Gemini (length):", prompt.length);
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const response = await genAI.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+    });
+
+    const responseText = response.text;
     console.log("planner - raw gemini response preview:", responseText.slice(0, 1500));
 
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
